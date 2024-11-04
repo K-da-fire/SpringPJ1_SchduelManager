@@ -1,5 +1,7 @@
 package org.example.schduelmanagerproject1.service;
 
+import java.util.List;
+import java.util.Optional;
 import org.example.schduelmanagerproject1.dto.ScheduleRequestDto;
 import org.example.schduelmanagerproject1.dto.ScheduleResponseDto;
 import org.example.schduelmanagerproject1.entity.Schedule;
@@ -21,5 +23,17 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     return scheduleRepository.saveSchedule(schedule);
   }
+
+  @Override
+  public List<ScheduleResponseDto> getAllSchedules() {
+    return scheduleRepository.getAllSchedules();
+  }
+
+  @Override
+  public ScheduleResponseDto getScheduleById(Long id) {
+    Schedule schedule = scheduleRepository.getScheduleByIdOrElseThrow(id);
+    return new ScheduleResponseDto(schedule);
+  }
+
 
 }
