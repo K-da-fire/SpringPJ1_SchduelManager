@@ -8,4 +8,6 @@ public interface ScheduleRepository {
   ScheduleResponseDto saveSchedule(Schedule schedule);
   List<ScheduleResponseDto> getAllSchedules();
   Schedule getScheduleByIdOrElseThrow(Long id);
+  int updateSchedule(long id, String scheduleTitle, String name);
+  int deleteSchedule(long id);
 }

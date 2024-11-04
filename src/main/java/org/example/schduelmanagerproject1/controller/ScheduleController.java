@@ -6,7 +6,9 @@ import org.example.schduelmanagerproject1.dto.ScheduleResponseDto;
 import org.example.schduelmanagerproject1.service.ScheduleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,6 +44,17 @@ public class ScheduleController {
     return new ResponseEntity<>(scheduleService.getScheduleById(scheduleId), HttpStatus.OK);
   }
 
+  @PatchMapping("/{id}")
+  public ResponseEntity<ScheduleResponseDto> updateSchedule(
+      @PathVariable long id,
+      @RequestBody ScheduleRequestDto dto) {
+    return new ResponseEntity<>(scheduleService.updateSchedule(id, dto.getScheduleTitle(), dto.getName()), HttpStatus.OK);
+  }
 
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> deleteSchedule(@PathVariable long id) {
+    scheduleService.deleteSchedule(id);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
 
 }

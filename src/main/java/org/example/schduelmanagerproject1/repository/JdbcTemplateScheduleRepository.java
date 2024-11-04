@@ -27,7 +27,6 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
     this.jdbcTemplate = new JdbcTemplate(dataSource);
   }
 
-
   @Override
   public ScheduleResponseDto saveSchedule(Schedule schedule) {
     SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
@@ -55,6 +54,16 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
   public Schedule getScheduleByIdOrElseThrow(Long scheduleId) {
     List<Schedule> result = jdbcTemplate.query("select * from schedule where schedule_id = ?", schedulesRowMapperV2(), scheduleId);
     return result.stream().findAny().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dose not exisit id = " + scheduleId));
+  }
+
+  @Override
+  public int updateSchedule(long id, String scheduleTitle, String name) {
+    return jdbcTemplate.update("update schedule set schedule_title = ?, name = ?, updated_date = ? where schedule_id = ?", scheduleTitle, name, LocalDate.now(), id);
+  }
+
+  @Override
+  public int deleteSchedule(long id) {
+    return jdbcTemplate.update("delete from schedule where schedule_id = ?", id);
   }
 
 
