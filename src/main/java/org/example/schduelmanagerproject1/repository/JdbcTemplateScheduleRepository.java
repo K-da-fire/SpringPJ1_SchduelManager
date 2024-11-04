@@ -37,5 +37,4 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
 
     return new ScheduleResponseDto(key.longValue(), schedule.getUserId(), schedule.getScheduleTitle(), schedule.getName(), schedule.getPassword(), schedule.getCreatedDate(), schedule.getUpdatedDate());
   }
-
 }
