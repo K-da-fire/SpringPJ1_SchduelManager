@@ -9,19 +9,19 @@ import java.util.Map;
 import javax.sql.DataSource;
 import org.example.schduelmanagerproject1.dto.ScheduleResponseDto;
 import org.example.schduelmanagerproject1.entity.Schedule;
+import org.example.schduelmanagerproject1.exception.DeletedSchedule;
+import org.example.schduelmanagerproject1.exception.NotFoundSchedule;
+import org.example.schduelmanagerproject1.exception.NotFoundUser;
+import org.example.schduelmanagerproject1.exception.WorngPasswordException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.server.ResponseStatusException;
 
 
-/**
- * 쿼리문에 비밀번호를 입력하여 수정하는 것으로 구현해보자
- * where에 비밀번호 조건도 넣자..
- * */
 @Repository
 public class JdbcTemplateScheduleRepository implements ScheduleRepository {
 
@@ -32,7 +32,7 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
   }
 
   @Override
-  public ScheduleResponseDto saveSchedule(Schedule schedule) {
+  public ScheduleResponseDto saveSchedule(Schedule schedule) throws NotFoundUser {
     SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
     jdbcInsert.withTableName("schedule").usingGeneratedKeyColumns("schedule_id");
 
@@ -44,72 +44,61 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
     parameters.put("created_date", schedule.getCreatedDate());
     parameters.put("updated_date", schedule.getUpdatedDate());
 
-    Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
+    Number key = checkUser(jdbcInsert,parameters);
 
     return new ScheduleResponseDto(key.longValue(), schedule.getUserId(), schedule.getScheduleTitle(), schedule.getName(), schedule.getPassword(), schedule.getCreatedDate(), schedule.getUpdatedDate());
   }
 
-  /**
-   * 스케쥴 dto에 있는정보를 조회할 때 user의 의미가 없음
-   * 스케줄에있는 userId로 조회가 다 되는 데 궂이 join을 할 이율르 모르겠다.
-   * 이유를 만드려면 ScheduleResponseDto에서 email을 반환하게 만드는게 제일일듯?
-   * @param userId
-   * @param name
-   * @param updatedDate
-   * @return
-   */
-
   @Override
-  public List<ScheduleResponseDto> getAllSchedules(long userId, String name, LocalDate updatedDate) {
+  public List<ScheduleResponseDto> getAllSchedules(long userId, String name, LocalDate updatedDate, Pageable pageable) {
     String sql;
     if(name != null && updatedDate != null) {
       sql = "select * "
-          + "from schedule s "
-          + "join users u on s.user_id = u.user_id  "
-          + "where u.user_id = ? and s.name = ? and s.updated_date = ?";
+          + "from schedule "
+          + "where user_id = ? and name = ? and updated_date = ?";
       return jdbcTemplate.query(sql, schedulesRowMapper(), userId, name, updatedDate);
     }else if(name == null && updatedDate != null) {
       sql = "select * "
           + "from schedule "
-          + "join users u on s.user_id = u.user_id  "
-          + "where u.user_id = ? and updated_date = ?";
-      return jdbcTemplate.query(sql, schedulesRowMapper(), updatedDate);
+          + "where user_id = ? and updated_date = ?";
+      return jdbcTemplate.query(sql, schedulesRowMapper(), userId, updatedDate);
     }else if(updatedDate == null && name != null) {
       sql = "select * "
           + "from schedule "
-          + "join users u on s.user_id = u.user_id  "
-          + "where u.user_id = ? and name = ? "
+          + "where user_id = ? and name = ? "
           + "order by updated_date desc";
-      return jdbcTemplate.query(sql, schedulesRowMapper(), name);
+      return jdbcTemplate.query(sql, schedulesRowMapper(), userId, name);
     }else{
       sql = "select * "
           + "from schedule "
-          + "join users u on s.user_id = u.user_id  "
-          + "where u.user_id = ? "
+          + "where user_id = ? "
           + "order by updated_date desc";
       return jdbcTemplate.query(sql, schedulesRowMapper(), userId);
     }
 
   }
 
+
   @Override
-  public Schedule getScheduleByIdOrElseThrow(long id) {
+  public Schedule getScheduleByIdOrElseThrow(long id) throws DeletedSchedule, NotFoundSchedule {
     List<Schedule> result = jdbcTemplate.query("select * from schedule where schedule_id = ?", schedulesRowMapperV2(), id);
-    return result.stream().findAny().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dose not exisit id = " + id));
+
+    return checkSchedule(id, result.stream().findAny().orElse(null));
   }
 
   @Override
-  public int updateSchedule(long id, String scheduleTitle, String name, String password) {
+  public int updateSchedule(long id, String scheduleTitle, String name, String password)
+      throws WorngPasswordException, DeletedSchedule {
     if(checkPassword(id, password))
       return jdbcTemplate.update("update schedule set schedule_title = ?, name = ?, updated_date = ? where schedule_id = ? and password = ?", scheduleTitle, name, LocalDate.now(), id, password);
-    else throw new ResponseStatusException(HttpStatus.NOT_FOUND, "id 혹은 비밀번호를 확인해주세요");
+    return 0;
   }
 
   @Override
-  public int deleteSchedule(long id, String password) {
+  public int deleteSchedule(long id, String password) throws WorngPasswordException, DeletedSchedule {
     if(checkPassword(id, password))
       return jdbcTemplate.update("delete from schedule where schedule_id = ? and password = ?", id, password);
-    else throw new ResponseStatusException(HttpStatus.NOT_FOUND, "id 혹은 비밀번호를 확인해주세요");
+    return 0;
   }
 
 
@@ -118,12 +107,6 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
 
       @Override
       public ScheduleResponseDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-        LocalDate updatedDate;
-        try {
-          updatedDate = rs.getDate("updated_date").toLocalDate();
-        }catch (Exception e) {
-          updatedDate = null;
-        }
         return new ScheduleResponseDto(
             rs.getLong("schedule_id"),
             rs.getLong("user_id"),
@@ -131,7 +114,7 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
             rs.getString("name"),
             rs.getString("password"),
             rs.getDate("created_date").toLocalDate(),
-            updatedDate
+            rs.getDate("updated_date").toLocalDate()
         );
       }
     };
@@ -142,12 +125,6 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
 
       @Override
       public Schedule mapRow(ResultSet rs, int rowNum) throws SQLException {
-        LocalDate updatedDate;
-        try {
-          updatedDate = rs.getDate("updated_date").toLocalDate();
-        }catch (Exception e) {
-          updatedDate = null;
-        }
         return new Schedule(
             rs.getLong("schedule_id"),
             rs.getLong("user_id"),
@@ -155,18 +132,47 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
             rs.getString("name"),
             rs.getString("password"),
             rs.getDate("created_date").toLocalDate(),
-            updatedDate
+            rs.getDate("updated_date").toLocalDate()
         );
       }
     };
   }
 
-  private boolean checkPassword(long id, String password){
+  private boolean checkPassword(long id, String password)
+      throws WorngPasswordException, DeletedSchedule {
+
+    checkScheduleId(id);
+
     List<Schedule> result = jdbcTemplate.query("select * from schedule where schedule_id = ? and password = ?", schedulesRowMapperV2(), id, password);
     if(result.isEmpty())
-      return false;
+      throw new WorngPasswordException(HttpStatus.FORBIDDEN, "비밀번호를 확인하세요.");
     else
       return true;
+  }
+
+  private Number checkUser(SimpleJdbcInsert jdbcInsert, Map<String, Object> parameters) throws NotFoundUser {
+    Number key;
+    try {
+      key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
+    }catch (Exception e) {
+     throw new NotFoundUser(HttpStatus.NOT_FOUND, "등록되지않은 유저입니다.");
+    }
+
+    return key;
+  }
+
+  private Schedule checkSchedule(long id, Schedule schedule) throws DeletedSchedule, NotFoundSchedule {
+    checkScheduleId(id);
+
+    if(schedule == null) throw new NotFoundSchedule(HttpStatus.NOT_FOUND, "일정을 찾을 수 없습니다");
+
+    return schedule;
+  }
+
+  private void checkScheduleId(long id) throws DeletedSchedule {
+    Schedule scheduleMaxId = jdbcTemplate.query("select * from schedule order by schedule_id desc", schedulesRowMapperV2()).getFirst();
+    Schedule schedule = jdbcTemplate.query("select * from schedule where schedule_id = ?", schedulesRowMapperV2(), id).stream().findAny().orElse(null);
+    if((id < scheduleMaxId.getScheduleId()) && schedule == null) throw new DeletedSchedule(HttpStatus.NOT_FOUND, "삭제된 일정입니다.");
   }
 
 }
