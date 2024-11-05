@@ -7,29 +7,22 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class Schedule {
-  private long scheduleId;
-  private long userId;
-  private String scheduleTitle;
+  private long scheduleId;      //PK
+  private long userId;          //FK
+  private String scheduleTitle; //NOT NULL
   private String name;
-  private String password;
+  private String password;      //NOT NULL
   private LocalDate createdDate;
   private LocalDate updatedDate;
 
+  //일정이 생성될 때 사용되는 생성자
   public Schedule(long userId, String scheduleTitle, String name, String password, LocalDate createdDate) {
     this.userId = userId;
     this.scheduleTitle = scheduleTitle;
-    this.name = name;
+    this.name = (name==null)?"":name;
     this.password = password;
-    this.createdDate = createdDate;
+    this.createdDate = (createdDate==null)?LocalDate.now():createdDate;
     this.updatedDate = LocalDate.EPOCH;
-  }
-
-  public void update(String scheduleTitle, String name, String password, LocalDate updatedDate){
-    if(this.password.equals(password)) {
-      this.scheduleTitle = scheduleTitle;
-      this.name = name;
-      this.updatedDate = updatedDate;
-    }
   }
 
 }

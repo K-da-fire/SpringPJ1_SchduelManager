@@ -1,5 +1,6 @@
 package org.example.schduelmanagerproject1.controller;
 
+import jakarta.validation.Valid;
 import org.example.schduelmanagerproject1.dto.UserRequestDto;
 import org.example.schduelmanagerproject1.dto.UserResponseDto;
 import org.example.schduelmanagerproject1.service.UserService;
@@ -21,7 +22,7 @@ public class UserController {
   }
 
   @PostMapping
-  public ResponseEntity<UserResponseDto> createdUsers(@RequestBody UserRequestDto dto) {
+  public ResponseEntity<UserResponseDto> createdUsers(@RequestBody @Valid UserRequestDto dto) {
     return new ResponseEntity<>(userService.saveUser(dto), HttpStatus.CREATED);
   }
 }

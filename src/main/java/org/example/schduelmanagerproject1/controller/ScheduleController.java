@@ -1,5 +1,6 @@
 package org.example.schduelmanagerproject1.controller;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import org.example.schduelmanagerproject1.dto.ScheduleRequestDto;
 import org.example.schduelmanagerproject1.dto.ScheduleResponseDto;
@@ -33,7 +34,7 @@ public class ScheduleController {
 
   //일정 생성
   @PostMapping
-  public ResponseEntity<ScheduleResponseDto> createSchedule(@RequestBody ScheduleRequestDto dto)
+  public ResponseEntity<ScheduleResponseDto> createSchedule(@RequestBody @Valid ScheduleRequestDto dto)
       throws DeletedSchedule, NotFoundUser {
     return new ResponseEntity<>(scheduleService.saveSchedule(dto), HttpStatus.CREATED);
   }

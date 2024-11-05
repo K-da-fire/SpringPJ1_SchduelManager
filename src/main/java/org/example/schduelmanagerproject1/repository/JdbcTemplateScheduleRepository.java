@@ -78,7 +78,6 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
 
   }
 
-
   @Override
   public Schedule getScheduleByIdOrElseThrow(long id) throws DeletedSchedule, NotFoundSchedule {
     List<Schedule> result = jdbcTemplate.query("select * from schedule where schedule_id = ?", schedulesRowMapperV2(), id);
@@ -100,7 +99,6 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
       return jdbcTemplate.update("delete from schedule where schedule_id = ? and password = ?", id, password);
     return 0;
   }
-
 
   private RowMapper<ScheduleResponseDto> schedulesRowMapper() {
     return new RowMapper<ScheduleResponseDto>() {
@@ -138,9 +136,7 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
     };
   }
 
-  private boolean checkPassword(long id, String password)
-      throws WorngPasswordException, DeletedSchedule {
-
+  private boolean checkPassword(long id, String password) throws WorngPasswordException, DeletedSchedule {
     checkScheduleId(id);
 
     List<Schedule> result = jdbcTemplate.query("select * from schedule where schedule_id = ? and password = ?", schedulesRowMapperV2(), id, password);
@@ -155,7 +151,7 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
     try {
       key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
     }catch (Exception e) {
-     throw new NotFoundUser(HttpStatus.NOT_FOUND, "등록되지않은 유저입니다.");
+      throw new NotFoundUser(HttpStatus.NOT_FOUND, "등록되지않은 유저입니다.");
     }
 
     return key;
