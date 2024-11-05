@@ -26,12 +26,11 @@ public class JdbcTemplateUserRepository implements UserRepository {
 
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("email", users.getEmail());
-    parameters.put("password", users.getPassword());
     parameters.put("name", users.getName());
     parameters.put("created_date", users.getCreatedDate());
     parameters.put("updated_date", null);
 
     Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
-    return new UserResponseDto(key.longValue(), users.getEmail(), users.getPassword(), users.getName(), users.getCreatedDate(), users.getUpdatedDate());
+    return new UserResponseDto(key.longValue(), users.getEmail(), users.getName(), users.getCreatedDate(), users.getUpdatedDate());
   }
 }

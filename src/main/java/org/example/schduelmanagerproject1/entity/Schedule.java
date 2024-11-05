@@ -15,12 +15,13 @@ public class Schedule {
   private LocalDate createdDate;
   private LocalDate updatedDate;
 
-  public Schedule(long userId, String scheduleTitle, String name, String password, LocalDate createdDate){
+  public Schedule(long userId, String scheduleTitle, String name, String password, LocalDate createdDate) {
     this.userId = userId;
     this.scheduleTitle = scheduleTitle;
     this.name = name;
     this.password = password;
     this.createdDate = createdDate;
+    this.updatedDate = LocalDate.EPOCH;
   }
 
   public void update(String scheduleTitle, String name, String password, LocalDate updatedDate){

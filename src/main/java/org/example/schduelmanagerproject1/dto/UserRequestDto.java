@@ -7,7 +7,6 @@ import lombok.Getter;
 @Getter
 public class UserRequestDto {
   private String email;
-  private String password;
   private String name;
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
   private LocalDate createdDate;

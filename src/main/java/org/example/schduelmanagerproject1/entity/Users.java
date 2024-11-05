@@ -9,14 +9,12 @@ import lombok.Getter;
 public class Users {
   private long userId;
   private String email;
-  private String password;
   private String name;
   private LocalDate createdDate;
   private LocalDate updatedDate;
 
-  public Users(String email, String password, String name, LocalDate createdDate) {
+  public Users(String email, String name, LocalDate createdDate) {
     this.email = email;
-    this.password = password;
     this.name = name;
     this.createdDate = createdDate;
   }

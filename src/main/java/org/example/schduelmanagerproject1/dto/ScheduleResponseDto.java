@@ -26,12 +26,4 @@ public class ScheduleResponseDto {
     this.updatedDate = schedule.getUpdatedDate();
   }
 
-//  public ScheduleResponseDto(long id, String scheduleTitle, String name, String password, String createdDate) {
-//    this.id = id;
-//    this.ScheduleTitle = scheduleTitle;
-//    this.name = name;
-//    this.password = password;
-//    this.createdDate = createdDate;
-//  }
-
 }
