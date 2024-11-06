@@ -2,9 +2,8 @@ package org.example.schduelmanagerproject1.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class NotFoundSchedule extends Exception {
-
-  public NotFoundSchedule(HttpStatus rawStatusCode, String message) {
+public class NotFoundException extends Exception {
+  public NotFoundException(HttpStatus rawStatusCode, String message) {
     super(message);
   }
 }

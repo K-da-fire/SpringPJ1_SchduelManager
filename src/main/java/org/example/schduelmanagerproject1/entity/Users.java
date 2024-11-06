@@ -18,4 +18,10 @@ public class Users {
     this.name = name;
     this.createdDate = createdDate;
   }
+
+  public Users(long userId, String email, String name) {
+    this.userId = userId;
+    this.email = email;
+    this.name = name;
+  }
 }

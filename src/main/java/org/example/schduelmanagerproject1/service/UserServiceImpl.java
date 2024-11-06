@@ -4,7 +4,6 @@ import org.example.schduelmanagerproject1.dto.UserRequestDto;
 import org.example.schduelmanagerproject1.dto.UserResponseDto;
 import org.example.schduelmanagerproject1.entity.Users;
 import org.example.schduelmanagerproject1.repository.UserRepository;
-import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
 import org.springframework.stereotype.Service;
 
 @Service

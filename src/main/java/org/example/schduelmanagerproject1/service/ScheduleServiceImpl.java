@@ -5,9 +5,7 @@ import java.util.List;
 import org.example.schduelmanagerproject1.dto.ScheduleRequestDto;
 import org.example.schduelmanagerproject1.dto.ScheduleResponseDto;
 import org.example.schduelmanagerproject1.entity.Schedule;
-import org.example.schduelmanagerproject1.exception.DeletedSchedule;
-import org.example.schduelmanagerproject1.exception.NotFoundSchedule;
-import org.example.schduelmanagerproject1.exception.NotFoundUser;
+import org.example.schduelmanagerproject1.exception.NotFoundException;
 import org.example.schduelmanagerproject1.exception.WorngPasswordException;
 import org.example.schduelmanagerproject1.repository.ScheduleRepository;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +24,8 @@ public class ScheduleServiceImpl implements ScheduleService {
   }
 
   @Override
-  public ScheduleResponseDto saveSchedule(ScheduleRequestDto dto) throws DeletedSchedule, NotFoundUser {
+  public ScheduleResponseDto saveSchedule(ScheduleRequestDto dto)
+      throws NotFoundException {
     Schedule schedule = new Schedule(dto.getUserId(),dto.getScheduleTitle(), dto.getName(), dto.getPassword(), dto.getCreatedDate());
 
     return scheduleRepository.saveSchedule(schedule);
@@ -34,12 +33,12 @@ public class ScheduleServiceImpl implements ScheduleService {
 
   @Override
   public List<ScheduleResponseDto> getAllSchedules(long userId, String name, LocalDate updatedDate,
-      Pageable pageable) {
+      Pageable pageable) throws NotFoundException {
     return scheduleRepository.getAllSchedules(userId, name, updatedDate, pageable);
   }
 
   @Override
-  public ScheduleResponseDto getScheduleById(long id) throws DeletedSchedule, NotFoundSchedule {
+  public ScheduleResponseDto getScheduleById(long id) throws NotFoundException {
     Schedule schedule = scheduleRepository.getScheduleByIdOrElseThrow(id);
     return new ScheduleResponseDto(schedule);
   }
@@ -47,7 +46,7 @@ public class ScheduleServiceImpl implements ScheduleService {
   @Transactional
   @Override
   public ScheduleResponseDto updateSchedule(long id, String scheduleTitle, String name, String password)
-      throws WorngPasswordException, DeletedSchedule, NotFoundSchedule {
+      throws WorngPasswordException, NotFoundException {
     if(scheduleTitle == null || name == null) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Title and contents can't be null");
     }
@@ -65,7 +64,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
   @Override
   public void deleteSchedule(long id, String password)
-      throws WorngPasswordException, DeletedSchedule {
+      throws WorngPasswordException, NotFoundException {
     int deleteRow = scheduleRepository.deleteSchedule(id, password);
     if(deleteRow == 0){
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Does not exist id = " + id);
