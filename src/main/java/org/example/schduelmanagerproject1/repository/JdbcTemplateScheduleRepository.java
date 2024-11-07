@@ -3,7 +3,9 @@ package org.example.schduelmanagerproject1.repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +16,6 @@ import org.example.schduelmanagerproject1.entity.Users;
 import org.example.schduelmanagerproject1.exception.NotFoundException;
 import org.example.schduelmanagerproject1.exception.WorngPasswordException;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -27,14 +28,20 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
+//  cs공부..
+//  정처기
+//  리눅스 마스터 -> 2급
+//  윈도우에서 도커설치
+//
+//  UUID 구현
+  
+  
   public JdbcTemplateScheduleRepository(DataSource dataSource) {
     this.jdbcTemplate = new JdbcTemplate(dataSource);
   }
 
   @Override
-  public ScheduleResponseDto saveSchedule(Schedule schedule)
-      throws NotFoundException {
-    findUser(schedule.getUserId());
+  public ScheduleResponseDto saveSchedule(Schedule schedule) {
     SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(jdbcTemplate);
     jdbcInsert.withTableName("schedule").usingGeneratedKeyColumns("schedule_id");
     Map<String, Object> parameters = new HashMap<>();
@@ -51,47 +58,41 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
   }
 
   @Override
-  public List<ScheduleResponseDto> getAllSchedules(long userId, String name, LocalDate updatedDate, Pageable pageable)
-      throws NotFoundException {
-    findUser(userId);
-    String sql = "select * from schedule where user_id = ? ";
-    if(name != null && updatedDate != null) {
-      sql = sql + "and name = ? and updated_date = ? limit ? offset ?";
-      return jdbcTemplate.query(sql, schedulesRowMapper(), userId, name, updatedDate, pageable.getPageSize(), pageable.getOffset());
-    }else if(name == null && updatedDate != null) {
-      sql = sql +"and updated_date = ? limit ? offset ?";
-      return jdbcTemplate.query(sql, schedulesRowMapper(), userId, updatedDate, pageable.getPageSize(), pageable.getOffset());
-    }else if(updatedDate == null && name != null) {
-      sql = sql + "and name = ? order by updated_date desc limit ? offset ?";
-      return jdbcTemplate.query(sql, schedulesRowMapper(), userId, name, pageable.getPageSize(), pageable.getOffset());
-    }else{
-      sql = sql + "order by updated_date desc limit ? offset ?";
-      return jdbcTemplate.query(sql, schedulesRowMapper(), userId, pageable.getPageSize(), pageable.getOffset());
+  public List<ScheduleResponseDto> getAllSchedules(long userId, String name, LocalDate updatedDate, Pageable pageable){
+    StringBuilder sql = new StringBuilder("select * from schedule where user_id = ? ");
+    List<Object> params = new ArrayList<>();
+    params.add(userId);
+    if(name != null && !name.isEmpty()) {
+      sql.append(" and name = ?");
+      params.add(name);
     }
+    if(updatedDate != null) {
+      sql.append(" and updated_date = ?");
+      params.add(updatedDate);
+    }
+    sql.append(" order by updated_date desc limit ? offset ?");
+    params.add(pageable.getPageSize());
+    params.add(pageable.getOffset());
+    return jdbcTemplate.query(sql.toString(), schedulesRowMapper(), params.toArray());
   }
 
   @Override
-  public Schedule getScheduleByIdOrElseThrow(long id) throws NotFoundException {
-    findSchedule(id);
+  public Schedule getScheduleById(long id){
     List<Schedule> result = jdbcTemplate.query("select * from schedule where schedule_id = ?", schedulesRowMapperV2(), id);
     return result.stream().findAny().orElse(null);
   }
 
   @Override
-  public int updateSchedule(long id, String scheduleTitle, String name, String password)
-      throws WorngPasswordException, NotFoundException {
-    findSchedule(id);
-    checkIdPassword(id, password);
-    return jdbcTemplate.update("update schedule set schedule_title = ?, name = ?, updated_date = ? where schedule_id = ? and password = ?", scheduleTitle, name, LocalDate.now(), id, password);
+  public int updateSchedule(long id, String scheduleTitle, String name, String password) {
+    return jdbcTemplate.update("update schedule set schedule_title = ?, name = ?, updated_date = ? where schedule_id = ? and password = ?", scheduleTitle, name,
+        LocalDateTime.now(), id, password);
   }
 
   @Override
-  public int deleteSchedule(long id, String password)
-      throws WorngPasswordException, NotFoundException {
-    findSchedule(id);
-    checkIdPassword(id, password);
-    return jdbcTemplate.update("delete from schedule where schedule_id = ? and password = ?", id, password);
-    }
+  public int deleteSchedule(long id, String password) {
+    return jdbcTemplate.update("delete from schedule where schedule_id = ? and password = ?", id,
+        password);
+  }
 
   private RowMapper<ScheduleResponseDto> schedulesRowMapper() {
     return new RowMapper<ScheduleResponseDto>() {
@@ -142,30 +143,21 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
       }
     };
   }
-
-  private void checkIdPassword(long id, String password)
-      throws WorngPasswordException, NotFoundException {
-    checkScheduleDeleted(id);
-
-    List<Schedule> result = jdbcTemplate.query("select * from schedule where schedule_id = ? and password = ?", schedulesRowMapperV2(), id, password);
-    if(result.isEmpty()) throw new WorngPasswordException(HttpStatus.FORBIDDEN, "잘못된 비밀번호 입니다.");
+////////////////////////////////////////////////////////////////////////////////////
+  @Override
+  public String getPassword(long id) {
+    String sql = "select password from schedule where schedule_id = ? ";
+    return jdbcTemplate.queryForObject(sql, String.class, id);
   }
 
-  private void findUser(long userId) throws NotFoundException {
-    Users userMaxId = jdbcTemplate.query("select * from users order by user_id desc",usersRowMapper()).getFirst();
-    Users user = jdbcTemplate.query("select * from users where user_id = ?",usersRowMapper(), userId).stream().findAny().orElse(null);
-    if((userId > userMaxId.getUserId()) || user == null) throw new NotFoundException(HttpStatus.NOT_FOUND, "등록되지않은 유저입니다.");
+  @Override
+  public Users getUser(long id) {
+    String sql = "select * from users where user_id = ? ";
+    return jdbcTemplate.queryForObject(sql, usersRowMapper(), id);
   }
 
-  private void findSchedule(long id) throws NotFoundException {
-    checkScheduleDeleted(id);
-    Schedule schedule = jdbcTemplate.query("select * from schedule where schedule_id = ?", schedulesRowMapperV2(), id).stream().findAny().orElse(null);
-    if(schedule == null) throw new NotFoundException(HttpStatus.NOT_FOUND, "일정을 찾을 수 없습니다");
-  }
-
-  private void checkScheduleDeleted(long id) throws NotFoundException {
-    Schedule scheduleMaxId = jdbcTemplate.query("select * from schedule order by schedule_id desc", schedulesRowMapperV2()).getFirst();
-    Schedule schedule = jdbcTemplate.query("select * from schedule where schedule_id = ?", schedulesRowMapperV2(), id).stream().findAny().orElse(null);
-    if((id < scheduleMaxId.getScheduleId()) && schedule == null) throw new NotFoundException(HttpStatus.NOT_FOUND, "삭제된 일정입니다.");
+  @Override
+  public String getMaxScheduleId() {
+    return jdbcTemplate.queryForObject("select max(schedule_id) from schedule", String.class);
   }
 }

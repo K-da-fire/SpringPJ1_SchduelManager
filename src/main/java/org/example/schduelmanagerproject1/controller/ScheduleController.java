@@ -3,6 +3,7 @@ package org.example.schduelmanagerproject1.controller;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import org.example.schduelmanagerproject1.dto.ScheduleRequestDto;
 import org.example.schduelmanagerproject1.dto.ScheduleResponseDto;
 import org.example.schduelmanagerproject1.exception.NotFoundException;
@@ -60,17 +61,20 @@ public class ScheduleController {
   @PatchMapping("/{id}")
   public ResponseEntity<ScheduleResponseDto> updateSchedule(
       @PathVariable long id,
-      @RequestBody ScheduleRequestDto dto)
+      @RequestBody @Valid ScheduleRequestDto dto)
       throws WorngPasswordException, NotFoundException {
     return new ResponseEntity<>(scheduleService.updateSchedule(id, dto.getScheduleTitle(), dto.getName(), dto.getPassword()), HttpStatus.OK);
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteSchedule(
+  public ResponseEntity<String> deleteSchedule(
       @PathVariable long id,
-      @RequestParam String password
+      @RequestBody Map<String, String> password
       ) throws WorngPasswordException, NotFoundException {
-    scheduleService.deleteSchedule(id, password);
-    return new ResponseEntity<>(HttpStatus.OK);
+    if(password==null || password.isEmpty()){
+      return new ResponseEntity<>("패스워드를 입력해주세요.", HttpStatus.BAD_REQUEST);
+    }
+    scheduleService.deleteSchedule(id, password.get("password"));
+    return new ResponseEntity<>("일정을 삭제하였습니다.", HttpStatus.OK);
   }
 }
