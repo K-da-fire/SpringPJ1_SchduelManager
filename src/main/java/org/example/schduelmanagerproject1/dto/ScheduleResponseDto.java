@@ -12,7 +12,7 @@ import org.example.schduelmanagerproject1.entity.Schedule;
 public class ScheduleResponseDto {
   private long scheduleId;
   private long userId;
-  private String ScheduleTitle;
+  private String todoList;
   private String name;
   private String password;
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
@@ -23,7 +23,7 @@ public class ScheduleResponseDto {
   public ScheduleResponseDto(Schedule schedule) {
     this.scheduleId = schedule.getScheduleId();
     this.userId = schedule.getUserId();
-    this.ScheduleTitle = schedule.getScheduleTitle();
+    this.todoList = schedule.getTodoList();
     this.name = schedule.getName();
     this.password = schedule.getPassword();
     this.createdDate = schedule.getCreatedDate();

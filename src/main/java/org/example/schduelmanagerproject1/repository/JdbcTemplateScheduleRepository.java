@@ -13,8 +13,6 @@ import javax.sql.DataSource;
 import org.example.schduelmanagerproject1.dto.ScheduleResponseDto;
 import org.example.schduelmanagerproject1.entity.Schedule;
 import org.example.schduelmanagerproject1.entity.Users;
-import org.example.schduelmanagerproject1.exception.NotFoundException;
-import org.example.schduelmanagerproject1.exception.WorngPasswordException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -27,14 +25,6 @@ import org.springframework.stereotype.Repository;
 public class JdbcTemplateScheduleRepository implements ScheduleRepository {
 
   private final JdbcTemplate jdbcTemplate;
-
-//  cs공부..
-//  정처기
-//  리눅스 마스터 -> 2급
-//  윈도우에서 도커설치
-//
-//  UUID 구현
-  
   
   public JdbcTemplateScheduleRepository(DataSource dataSource) {
     this.jdbcTemplate = new JdbcTemplate(dataSource);
@@ -46,7 +36,7 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
     jdbcInsert.withTableName("schedule").usingGeneratedKeyColumns("schedule_id");
     Map<String, Object> parameters = new HashMap<>();
     parameters.put("user_id", schedule.getUserId());
-    parameters.put("schedule_title", schedule.getScheduleTitle());
+    parameters.put("todo_list", schedule.getTodoList());
     parameters.put("name", schedule.getName());
     parameters.put("password", schedule.getPassword());
     parameters.put("created_date", schedule.getCreatedDate());
@@ -54,7 +44,7 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
 
     Number key = jdbcInsert.executeAndReturnKey(new MapSqlParameterSource(parameters));
 
-    return new ScheduleResponseDto(key.longValue(), schedule.getUserId(), schedule.getScheduleTitle(), schedule.getName(), schedule.getPassword(), schedule.getCreatedDate(), schedule.getUpdatedDate());
+    return new ScheduleResponseDto(key.longValue(), schedule.getUserId(), schedule.getTodoList(), schedule.getName(), schedule.getPassword(), schedule.getCreatedDate(), schedule.getUpdatedDate());
   }
 
   @Override
@@ -83,8 +73,8 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
   }
 
   @Override
-  public int updateSchedule(long id, String scheduleTitle, String name, String password) {
-    return jdbcTemplate.update("update schedule set schedule_title = ?, name = ?, updated_date = ? where schedule_id = ? and password = ?", scheduleTitle, name,
+  public int updateSchedule(long id, String todoList, String name, String password) {
+    return jdbcTemplate.update("update schedule set todo_list = ?, name = ?, updated_date = ? where schedule_id = ? and password = ?", todoList, name,
         LocalDateTime.now(), id, password);
   }
 
@@ -102,7 +92,7 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
         return new ScheduleResponseDto(
             rs.getLong("schedule_id"),
             rs.getLong("user_id"),
-            rs.getString("schedule_title"),
+            rs.getString("todo_list"),
             rs.getString("name"),
             rs.getString("password"),
             rs.getDate("created_date").toLocalDate().atTime(LocalTime.now()),
@@ -120,7 +110,7 @@ public class JdbcTemplateScheduleRepository implements ScheduleRepository {
         return new Schedule(
             rs.getLong("schedule_id"),
             rs.getLong("user_id"),
-            rs.getString("schedule_title"),
+            rs.getString("todo_list"),
             rs.getString("name"),
             rs.getString("password"),
             rs.getTimestamp("created_date").toLocalDateTime(),

@@ -12,16 +12,16 @@ import lombok.Getter;
 public class Schedule {
   private long scheduleId;      //PK
   private long userId;          //FK
-  private String scheduleTitle; //NOT NULL
+  private String todoList; //NOT NULL
   private String name;
   private String password;      //NOT NULL
   private LocalDateTime createdDate;
   private LocalDateTime updatedDate;
 
   //일정이 생성될 때 사용되는 생성자
-  public Schedule(long userId, String scheduleTitle, String name, String password, LocalDateTime createdDate) {
+  public Schedule(long userId, String todoList, String name, String password, LocalDateTime createdDate) {
     this.userId = userId;
-    this.scheduleTitle = scheduleTitle;
+    this.todoList = todoList;
     this.name = (name==null)?"":name;
     this.password = password;
     this.createdDate = (createdDate==null)?LocalDateTime.now():createdDate;

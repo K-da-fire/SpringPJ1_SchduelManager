@@ -2,7 +2,7 @@ package org.example.schduelmanagerproject1.controller;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.example.schduelmanagerproject1.exception.WorngPasswordException;
+import org.example.schduelmanagerproject1.exception.WrongPasswordException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -25,7 +25,7 @@ public class ExceptionController {
   }
 
   @ExceptionHandler
-  public ResponseEntity<String> checkIdPassword(WorngPasswordException ex) {
+  public ResponseEntity<String> checkPassword(WrongPasswordException ex) {
     return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
   }
 
@@ -42,7 +42,7 @@ public class ExceptionController {
 
   @ExceptionHandler
   public ResponseEntity<String> ResponseStateException(ResponseStatusException ex) {
-    return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
   }
 
 }

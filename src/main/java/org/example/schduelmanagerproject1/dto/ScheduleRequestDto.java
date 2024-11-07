@@ -13,7 +13,7 @@ public class ScheduleRequestDto {
   private long userId;
   @NotNull(message = "할 일은 필수값 입니다.")
   @Size(max = 200, message = "일정은 200자 이내입니다.")
-  private String scheduleTitle;
+  private String todoList;
   private String name;
   @NotNull(message = "비밀번호는 필수값 입니다.")
   private String password;

@@ -7,7 +7,7 @@ import java.util.Map;
 import org.example.schduelmanagerproject1.dto.ScheduleRequestDto;
 import org.example.schduelmanagerproject1.dto.ScheduleResponseDto;
 import org.example.schduelmanagerproject1.exception.NotFoundException;
-import org.example.schduelmanagerproject1.exception.WorngPasswordException;
+import org.example.schduelmanagerproject1.exception.WrongPasswordException;
 import org.example.schduelmanagerproject1.service.ScheduleService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -62,15 +62,15 @@ public class ScheduleController {
   public ResponseEntity<ScheduleResponseDto> updateSchedule(
       @PathVariable long id,
       @RequestBody @Valid ScheduleRequestDto dto)
-      throws WorngPasswordException, NotFoundException {
-    return new ResponseEntity<>(scheduleService.updateSchedule(id, dto.getScheduleTitle(), dto.getName(), dto.getPassword()), HttpStatus.OK);
+      throws WrongPasswordException, NotFoundException {
+    return new ResponseEntity<>(scheduleService.updateSchedule(id, dto.getTodoList(), dto.getName(), dto.getPassword()), HttpStatus.OK);
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<String> deleteSchedule(
       @PathVariable long id,
       @RequestBody Map<String, String> password
-      ) throws WorngPasswordException, NotFoundException {
+      ) throws WrongPasswordException, NotFoundException {
     if(password==null || password.isEmpty()){
       return new ResponseEntity<>("패스워드를 입력해주세요.", HttpStatus.BAD_REQUEST);
     }
