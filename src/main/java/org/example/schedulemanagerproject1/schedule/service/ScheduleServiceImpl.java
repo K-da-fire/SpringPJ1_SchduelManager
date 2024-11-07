@@ -26,6 +26,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     this.userRepository = userRepository;
   }
 
+  //일정 생성
   @Override
   public ScheduleResponseDto saveSchedule(ScheduleRequestDto dto)
       throws NotFoundException {
@@ -35,6 +36,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     return scheduleRepository.saveSchedule(schedule);
   }
 
+  //전체 일정 조회
   @Override
   public List<ScheduleResponseDto> getAllSchedules(long userId, String name, LocalDate updatedDate,
       Pageable pageable) throws NotFoundException {
@@ -42,12 +44,14 @@ public class ScheduleServiceImpl implements ScheduleService {
     return scheduleRepository.getAllSchedules(userId, name, updatedDate, pageable);
   }
 
+  //선택 일정 조회
   @Override
   public ScheduleResponseDto getScheduleById(long id) throws NotFoundException {
     Schedule schedule = findSchedule(id);
     return new ScheduleResponseDto(schedule);
   }
 
+  //선택 일정 수정
   @Transactional
   @Override
   public ScheduleResponseDto updateSchedule(long id, String todoList, String name, String password)
@@ -59,6 +63,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     return new ScheduleResponseDto(schedule);
   }
 
+  //선택 일정 수정
   @Override
   public void deleteSchedule(long id, String password)
       throws WrongPasswordException, NotFoundException {
@@ -66,6 +71,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     scheduleRepository.deleteSchedule(id, password);
   }
 
+  //유저 조회
   private void findUser(long userId) throws NotFoundException {
     Users user = userRepository.getUserById(userId);
     if(user == null) throw new NotFoundException(HttpStatus.NOT_FOUND, "등록되지않은 유저입니다.");
@@ -84,6 +90,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     return schedule;
   }
 
+  //id 존재 여부, 비밀번호 일치 확인
   private void checkIdPassword(long id, String password)
       throws NotFoundException, WrongPasswordException {
     Schedule schedule = findSchedule(id); //id가 존재할 때 실행 이 단계를 넘으면 아이디가 존재 한다는 의미

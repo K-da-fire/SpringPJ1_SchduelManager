@@ -9,6 +9,7 @@ import org.example.schedulemanagerproject1.exception.WrongPasswordException;
 import org.example.schedulemanagerproject1.users.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -19,23 +20,28 @@ public class UserServiceImpl implements UserService {
     this.userRepository = userRepository;
   }
 
+  //유저 생성
   @Override
   public UserResponseDto saveUser(UserRequestDto dto) {
     Users users = new Users(dto.getEmail(), dto.getName(), dto.getPassword(), dto.getCreatedDate());
     return userRepository.saveUsers(users);
   }
 
+  //전체 유저 조회
   @Override
   public List<UserResponseDto> getAllUsers() {
     return userRepository.getAllUsers();
   }
 
+  //선택 유저 조회
   @Override
   public UserResponseDto getUserById(long id) throws NotFoundException {
     Users user = findUser(id);
     return new UserResponseDto(user);
   }
 
+  //선택 유저 수정
+  @Transactional
   @Override
   public UserResponseDto updateUser(long id, String name, String email, String password)
       throws NotFoundException, WrongPasswordException {
@@ -46,6 +52,7 @@ public class UserServiceImpl implements UserService {
     return new UserResponseDto(user);
   }
 
+  //선택 유저 삭제
   @Override
   public void deleteUser(long id, String password)
       throws NotFoundException, WrongPasswordException {
@@ -53,6 +60,7 @@ public class UserServiceImpl implements UserService {
     userRepository.deleteUser(id, password);
   }
 
+  //유저 탐색
   private Users findUser(long id) throws NotFoundException {
     long userId = userRepository.getMaxUserId();
     Users user = userRepository.getUserById(id);
@@ -65,6 +73,7 @@ public class UserServiceImpl implements UserService {
     return user;
   }
 
+  //id가 존재 여부, 비밀번호 일치 여부 확인
   private void checkIdPassword(long id, String password)
       throws NotFoundException, WrongPasswordException {
     Users user = findUser(id);
